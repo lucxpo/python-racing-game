@@ -18,6 +18,10 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         self.direction.x = keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]
         self.rect.x += self.direction.x * self.speed * dt
+        if self.rect.left <= collision_pos[0]:
+            self.rect.left = collision_pos[0]
+        if self.rect.right >= collision_pos[1]:
+            self.rect.right = collision_pos[1]
 
 
 class RoadPart(pygame.sprite.Sprite):
@@ -30,7 +34,7 @@ class RoadPart(pygame.sprite.Sprite):
 
 def build_road(size=9):
     y = 0
-    while y <= WINDOW_HEIGHT:
+    while y <= WINDOW_HEIGHT * 2:
         x = (WINDOW_WIDTH / 2) - (int(size / 2) * TILE_SIZE)
         for i in range(size):
             if i == 0:
