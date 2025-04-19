@@ -11,6 +11,13 @@ class Player(pygame.sprite.Sprite):
         self.frame_rect = (0, 0, TILE_SIZE, TILE_SIZE)
         self.image = self.sprite_sheet.subsurface(self.frame_rect).copy()
         self.rect = self.image.get_frect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2))
+        self.direction = pygame.math.Vector2()
+        self.speed = 300
+
+    def update(self, dt):
+        keys = pygame.key.get_pressed()
+        self.direction.x = keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]
+        self.rect.x += self.direction.x * self.speed * dt
 
 
 class RoadPart(pygame.sprite.Sprite):
@@ -19,7 +26,7 @@ class RoadPart(pygame.sprite.Sprite):
         self.frame_rect = (TILE_SIZE * (part-1), 0, TILE_SIZE, TILE_SIZE)
         self.image = sprite_sheet.subsurface(self.frame_rect).copy()
         self.rect = self.image.get_frect(center = pos)
-
+        
 
 def build_road(size=9):
     y = 0
@@ -55,11 +62,15 @@ player = Player(all_sprites)
 # game loop
 running = True
 while running:
+    dt = clock.tick(60) / 1000
 
     # event loop
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+    # update
+    all_sprites.update(dt)
 
     # draw
     display_surface.fill((20, 126, 20))
