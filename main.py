@@ -1,7 +1,7 @@
 import pygame
 from os.path import join
 
-WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
+WINDOW_WIDTH, WINDOW_HEIGHT = 1000, 720
 TILE_SIZE = 32
 
 class Player(pygame.sprite.Sprite):
@@ -21,7 +21,7 @@ class RoadPart(pygame.sprite.Sprite):
         self.rect = self.image.get_frect(center = pos)
 
 
-def build_road(size=11):
+def build_road(size=9):
     y = 0
     while y <= WINDOW_HEIGHT:
         x = (WINDOW_WIDTH / 2) - (int(size / 2) * TILE_SIZE)
@@ -35,6 +35,10 @@ def build_road(size=11):
             RoadPart(road_surf, part, (x, y), all_sprites)
             x += TILE_SIZE
         y += TILE_SIZE
+    
+    l = (WINDOW_WIDTH / 2) - (int(size / 2) * TILE_SIZE) - (TILE_SIZE / 2)
+    r = (WINDOW_WIDTH / 2) + (int(size / 2) * TILE_SIZE) + (TILE_SIZE / 2)
+    return (l, r)
 
 # general setup
 pygame.init()
@@ -45,7 +49,7 @@ clock = pygame.time.Clock()
 road_surf = pygame.image.load(join("Assets", "Images", "street-Sheet.png")).convert_alpha()
 
 all_sprites = pygame.sprite.Group()
-build_road()
+collision_pos = build_road()
 player = Player(all_sprites)
 
 # game loop
