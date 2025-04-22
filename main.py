@@ -1,5 +1,6 @@
 import pygame
 from os.path import join
+from random import randint
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1000, 720
 TILE_SIZE = 32
@@ -8,12 +9,12 @@ SCROLL_SPEED = 100
 class Player(pygame.sprite.Sprite):
     def __init__(self, groups):
         super().__init__(groups)
-        self.sprite_sheet = pygame.image.load(join("Assets", "Images", "player-Sheet.png")).convert_alpha()
+        self.sprite_sheet = pygame.image.load(join("Assets", "Images", "player-sheet.png")).convert_alpha()
         self.frame_rect = (0, 0, TILE_SIZE, TILE_SIZE)
         self.image = self.sprite_sheet.subsurface(self.frame_rect).copy()
         self.rect = self.image.get_frect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2))
         self.direction = pygame.math.Vector2()
-        self.speed = 300
+        self.speed = 100
 
     def update(self, dt):
         keys = pygame.key.get_pressed()
@@ -31,7 +32,7 @@ class Road(pygame.sprite.Sprite):
         super().__init__(groups)
         type(self).counter += 1
 
-        sheet = pygame.image.load(join("Assets", "Images", "street-Sheet.png")).convert_alpha()
+        sheet = pygame.image.load(join("Assets", "Images", "road-sheet.png")).convert_alpha()
 
         rows = (WINDOW_HEIGHT // TILE_SIZE) + 1
 
@@ -69,7 +70,7 @@ class Background(pygame.sprite.Sprite):
         super().__init__(groups)
         type(self).counter += 1
 
-        surf = pygame.transform.scale_by(pygame.image.load(join("Assets", "Backgrounds", "pixelart_starfield.png")).convert(), 2)
+        surf = pygame.transform.scale_by(pygame.image.load(join("Assets", "Images", "background.png")).convert(), 2)
 
         rows = (WINDOW_HEIGHT // surf.get_height()) + 1
         cols = (WINDOW_WIDTH // surf.get_width()) + 1
@@ -92,12 +93,34 @@ class Background(pygame.sprite.Sprite):
         if self.rect.x >= WINDOW_WIDTH:
             self.rect.x -= self.image.get_width() * type(self).counter
 
+class EnemyCar(pygame.sprite.Sprite):
+    def __init__(self, groups, surf, pos):
+        super().__init__(groups)
+        self.image = surf
+        self.rect = self.image.get_frect(topleft = pos)
+    
+    def update(self, dt):
+        self.rect.y += SCROLL_SPEED * dt
+        if self.rect.top >= WINDOW_HEIGHT:
+            self.kill()
+
+
+def spawn_enemy():
+    pos = (randint(collision_pos[0], collision_pos[1] - TILE_SIZE), 0 - TILE_SIZE)
+    EnemyCar(all_sprites, enemy_car_surfs[randint(0, 4)], pos)
+
 
 # general setup
 pygame.init()
 display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Racing Mania")
 clock = pygame.time.Clock()
+
+enemy_car_surfs = []
+for i in range(5):
+    surf =  pygame.image.load(join("Assets", "Images", f"enemy{i}.png"))
+    surf = pygame.transform.rotozoom(surf, 90, 0.5)
+    enemy_car_surfs.append(surf)
 
 all_sprites = pygame.sprite.Group()
 background = Background(all_sprites)
@@ -106,6 +129,10 @@ road = Road(all_sprites)
 Road(all_sprites, y=road.rect.bottom)
 collision_pos = (road.rect.left, road.rect.right)
 player = Player(all_sprites)
+
+
+spawn_event = pygame.event.custom_type()
+pygame.time.set_timer(spawn_event, 1000)
 
 # game loop
 running = True
@@ -116,6 +143,8 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == spawn_event:
+            spawn_enemy()
 
     # update
     all_sprites.update(dt)
@@ -124,5 +153,6 @@ while running:
     display_surface.fill("black")
 
     all_sprites.draw(display_surface)
+    pygame.draw.rect(display_surface, (255, 0, 0), player.rect, 2)
 
     pygame.display.update()
